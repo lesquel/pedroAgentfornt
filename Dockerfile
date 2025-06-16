@@ -23,9 +23,10 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
+# Instala pnpm globalmente
 RUN npm install -g pnpm
 
-# Copia la carpeta .next de la build (generada)
+# Copia la carpeta .next generada
 COPY --from=builder /app/.next ./.next
 
 # Copia package.json y lockfile para instalar sólo prod dependencies
@@ -34,11 +35,11 @@ COPY package.json pnpm-lock.yaml ./
 # Instala solo dependencias de producción
 RUN pnpm install --prod
 
-# Copia los archivos estáticos, si existen
-# Solo copiar 'public' si existe en builder
-COPY --from=builder /app/public ./public || echo "No public folder, skipping"
+# Copia la carpeta public (siempre que exista)
+# Si no existe, asegúrate de crear una carpeta vacía para evitar errores
+COPY --from=builder /app/public ./public
 
-# Copia otros archivos necesarios como next.config.js o tsconfig.json
+# Copia otros archivos necesarios (opcional)
 COPY --from=builder /app/next.config.js ./ || true
 
 # Expone el puerto en que corre Next.js (por defecto 3000)
